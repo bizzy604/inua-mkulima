@@ -1,5 +1,35 @@
 name: inua-mkulima
 services:
+  backend:
+    profiles: [app]
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      APP_ORIGIN: http://localhost:5173
+      DATABASE_PATH: backend/var/business.db
+      SESSION_DATABASE_PATH: backend/var/sessions.db
+      DEMO_USERNAME: demo
+      DEMO_DEALER_ID: demo-dealer
+      DEMO_VERIFICATION_CODE: 123456
+      RABBITMQ_URL: amqp://inua:local-rabbitmq-only@rabbitmq:5672
+      LOKI_URL: http://loki:3100
+      LOG_DIR: backend/var/logs
+      LOG_LEVEL: info
+      COOKIE_SECURE: "false"
+      TRUST_PROXY: "0"
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - backend-data:/app/backend/var
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      loki:
+        condition: service_started
   rabbitmq:
     image: rabbitmq:4.1.4-management
     hostname: inua-rabbitmq
@@ -28,5 +58,6 @@ services:
       - ./loki.yaml:/etc/loki/local-config.yaml:ro
       - loki-data:/loki
 volumes:
+  backend-data:
   rabbitmq-data:
   loki-data:

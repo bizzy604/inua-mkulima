@@ -11,6 +11,9 @@
   },
   "scripts": {
     "setup:local": "node backend/scripts/setup-local.mjs",
+    "docker:up": "docker compose -f infra/compose.yaml --profile app up --build -d",
+    "docker:down": "docker compose -f infra/compose.yaml --profile app down",
+    "docker:logs": "docker compose -f infra/compose.yaml --profile app logs -f backend",
     "dev": "npm run dev --workspace backend",
     "build": "npm run build --workspace frontend && npm run build --workspace backend",
     "start": "npm run start --workspace backend",

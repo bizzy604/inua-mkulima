@@ -95,6 +95,34 @@ npm run dev --workspace frontend
 
 Open http://localhost:5173. Vite proxies `/api` to `http://localhost:3000`, so both processes must be running. The backend API is available at http://localhost:3000/api and its health endpoint is `GET /api/health`.
 
+### Docker backend and SQLite testing
+
+If Windows cannot install `better-sqlite3` because `node-gyp` cannot find Visual Studio, run the backend inside Docker instead. The database remains SQLite, but the native Node binding is compiled in the Linux container. RabbitMQ and Loki are also reached through their Compose service names.
+
+From the repository root:
+
+```powershell
+docker compose -f infra/compose.yaml --profile app up --build -d
+docker compose -f infra/compose.yaml --profile app logs -f backend
+```
+
+The container automatically creates its disposable demo configuration, applies migrations, seeds missing fictional data, and starts the API on http://localhost:3000. The SQLite business database, session database, and logs persist in the `backend-data` Docker volume. Start the frontend separately with the Vite command above; it continues to proxy `/api` to port 3000.
+
+Useful Docker commands:
+
+```powershell
+docker compose -f infra/compose.yaml --profile app ps
+docker compose -f infra/compose.yaml --profile app down
+```
+
+To intentionally remove the Docker SQLite data and start a fresh demo, stop the stack and run:
+
+```powershell
+docker compose -f infra/compose.yaml --profile app down -v
+```
+
+That removes the business database, session database, logs, RabbitMQ data, and Loki data. Do not use it when you need to preserve a local purchase history.
+
 The configured development browser origin is `http://localhost:5173`. Every mutation, including login and logout, requires that Origin. For a built same-origin deployment, set `APP_ORIGIN=http://localhost:3000`; Express serves `frontend/dist` after `npm run build`.
 
 Backend API documentation is available without authentication at:
