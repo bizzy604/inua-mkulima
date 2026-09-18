@@ -37,8 +37,14 @@ export function LoginPage({ onSuccess }: { onSuccess: () => void }) {
     <main className="login-page">
       <section className="login-visual">
         <img
-          src="/assets/header@2x.png"
-          alt="Farmer using the Inua Mkulima service"
+          className="login-background"
+          src="/assets/bg@2x.png"
+          alt="Inua Mkulima agricultural background"
+        />
+        <img
+          className="login-logo"
+          src="/assets/logo%20(2).svg"
+          alt="Inua Mkulima"
         />
         <div className="visual-caption">
           <img src="/assets/Logo.svg" alt="Co-operative Bank" />
