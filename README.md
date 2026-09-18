@@ -15,10 +15,10 @@ The repository contains a React/Vite frontend and a Node.js/Express backend. SQL
 - Whole-KES subsidy deduction inputs with numeric filtering and line-total validation.
 - Server-side preview before the summary screen.
 - Summary of product lines, purchase total, subsidy deduction, customer remainder, and projected wallet balance.
-- Six-digit simulated verification code entry and payment submission.
-- Idempotency key retained in `sessionStorage` for payment retries.
+- Six-digit simulated verification code entry with paste, keyboard navigation, resend countdown, and payment submission.
+- Economic payment payload and idempotency key retained in `sessionStorage` for safe recovery after an interrupted request; verification codes are never stored.
 - Payment confirmation showing the saved farmer and transaction reference.
-- Receipt download from the backend-generated PDF.
+- Receipt download from the backend-generated PDF, including the supplied bank, Inua Mkulima, and Kenya marks and matching green/gold table treatment.
 - Logout confirmation and responsive desktop/mobile layouts using the supplied image and logo assets.
 
 The frontend intentionally does not provide registration, farmer search, product administration, transactions/report pages, SMS, or real payment rails. Transactions and Reports remain visibly inactive because those screens are outside the supplied scope.
@@ -251,15 +251,14 @@ The current automated checks completed successfully during implementation:
 
 - `npm run typecheck`: frontend and backend TypeScript checks pass.
 - `npm run build`: frontend bundle and backend production compilation pass.
-- `npm test`: 39 backend tests pass across five test files.
+- `npm test`: 40 backend tests pass across five test files.
 - `npm run test:eval`: deterministic varied-cart invariants pass.
 - Backend tests cover authentication, origin enforcement, validation, preview non-mutation, rollback, guarded debit, idempotent replay/conflict, concurrent writers, ownership, historical receipts, restart persistence, SQL restore, and logging failure isolation.
 
 Still requiring environment-dependent verification:
 
 - `npm run test:infra` against running RabbitMQ and Loki.
-- Browser-level Playwright checkout coverage and screenshot review at desktop and mobile sizes.
-- Manual visual comparison with all supplied Adobe reference screens.
+- Browser-level Playwright checkout coverage and full screenshot review at desktop and mobile sizes remain future verification work. The live agent-browser check completed for login, products, summary/code entry, and confirmation routing at the desktop viewport.
 
 These are verification gaps, not replacements for the implemented behavior.
 

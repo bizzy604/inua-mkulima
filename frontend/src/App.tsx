@@ -1,7 +1,7 @@
 /** Composes application session state with the frontend routes and page modules. */
 import { useEffect, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
-import { api, type Preview, type Transaction } from "./api";
+import { api, type CartLine, type Preview, type Transaction } from "./api";
 import { type Cart } from "./cart/cart";
 import { Shell } from "./components/Shell";
 import { ConfirmationPage } from "./pages/ConfirmationPage";
@@ -11,15 +11,40 @@ import { SummaryPage } from "./pages/SummaryPage";
 
 export function App() {
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
+  const [restoringAttempt, setRestoringAttempt] = useState(false);
   const [cart, setCart] = useState<Cart>({});
   const [preview, setPreview] = useState<Preview | null>(null);
   const [transaction, setTransaction] = useState<Transaction | null>(null);
 
   useEffect(() => {
-    api
-      .me()
-      .then(() => setSignedIn(true))
-      .catch(() => setSignedIn(false));
+    const unauthenticated = () => {
+      setSignedIn(false);
+      setCart({});
+      setPreview(null);
+      setTransaction(null);
+      setRestoringAttempt(false);
+    };
+    window.addEventListener("inua:unauthenticated", unauthenticated);
+    api.me().then(() => {
+      setSignedIn(true);
+      const raw = sessionStorage.getItem("inua-payment-attempt");
+      if (!raw) return;
+      try {
+        const pending = JSON.parse(raw) as { payload?: { items?: unknown[]; expectedDeductionTotalMinor?: unknown } };
+        if (!Array.isArray(pending.payload?.items) || typeof pending.payload.expectedDeductionTotalMinor !== "number") throw new Error("Invalid attempt");
+        const items = pending.payload.items as CartLine[];
+        const restoredCart = Object.fromEntries(items.map((item) => [item.productId, item])) as Cart;
+        setCart(restoredCart);
+        setRestoringAttempt(true);
+        api.preview({ items, expectedDeductionTotalMinor: pending.payload.expectedDeductionTotalMinor })
+          .then(setPreview)
+          .catch(() => sessionStorage.removeItem("inua-payment-attempt"))
+          .finally(() => setRestoringAttempt(false));
+      } catch {
+        sessionStorage.removeItem("inua-payment-attempt");
+      }
+    }).catch(() => setSignedIn(false));
+    return () => window.removeEventListener("inua:unauthenticated", unauthenticated);
   }, []);
 
   function signOut() {
@@ -27,9 +52,10 @@ export function App() {
     setCart({});
     setPreview(null);
     setTransaction(null);
+    sessionStorage.removeItem("inua-payment-attempt");
   }
 
-  if (signedIn === null) {
+  if (signedIn === null || restoringAttempt) {
     return (
       <div className="splash">
         <img src="/assets/Logo.svg" alt="" />
@@ -74,6 +100,8 @@ export function App() {
               <SummaryPage
                 cart={cart}
                 preview={preview}
+                setCart={setCart}
+                setPreview={setPreview}
                 onPaid={setTransaction}
               />
             </Shell>

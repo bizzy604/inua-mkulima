@@ -59,6 +59,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     error?: { message?: string; code?: string };
   };
   if (!response.ok) {
+    if (response.status === 401 && typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("inua:unauthenticated"));
+    }
     const error = new Error(
       body.error?.message ?? "The request could not be completed.",
     );

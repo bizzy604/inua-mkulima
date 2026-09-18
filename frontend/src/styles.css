@@ -320,6 +320,31 @@ aside button.nav-active {
   align-items: end;
   margin-bottom: 24px;
 }
+.breadcrumb-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: -8px 0 16px;
+  color: #7a817b;
+  font-size: 11px;
+}
+.breadcrumb-back {
+  min-height: 30px;
+  padding: 0 18px;
+  border: 0;
+  background: var(--gold);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+.breadcrumb-separator {
+  color: #9ba19b;
+  font-size: 18px;
+  line-height: 1;
+}
+.breadcrumb-row strong {
+  color: #333a34;
+}
 .page-heading h1 {
   font-size: 30px;
   color: #171917;
@@ -381,7 +406,7 @@ aside button.nav-active {
   min-height: 150px;
   padding: 15px;
   background: var(--cream);
-  overflow: hidden;
+  overflow-x: auto;
 }
 .empty-selection {
   display: grid;
@@ -396,6 +421,7 @@ aside button.nav-active {
 .selected-row {
   display: grid;
   grid-template-columns: 1.35fr 86px 74px 82px 92px;
+  min-width: 530px;
   align-items: center;
   gap: 8px;
   font-size: 12px;
@@ -422,6 +448,18 @@ aside button.nav-active {
 }
 .selected-row input.invalid-input {
   border-color: #b52121;
+}
+.line-warning {
+  color: #a52121;
+  font-size: 11px;
+  font-weight: 700;
+}
+.selected-row .line-warning {
+  grid-column: 1 / -1;
+}
+.wallet-warning {
+  margin: 0;
+  text-align: right;
 }
 .qty {
   display: flex;
@@ -459,6 +497,13 @@ aside button.nav-active {
   font-weight: 700;
   font-style: italic;
 }
+.subsidy-note {
+  color: #d22b26;
+  font-size: 12px;
+  font-weight: 700;
+  font-style: italic;
+  line-height: 1.45;
+}
 .black-button {
   background: #080909;
   color: #fff;
@@ -479,20 +524,40 @@ aside button.nav-active {
 .summary-card {
   padding: 22px;
 }
-.summary-line {
+.summary-table {
+  overflow-x: auto;
+}
+.summary-table-row {
   display: grid;
-  grid-template-columns: 1fr auto auto;
-  gap: 24px;
-  padding: 15px 0;
+  grid-template-columns: minmax(170px, 1fr) 105px 100px 110px 100px;
+  gap: 12px;
+  min-width: 650px;
+  padding: 12px 8px;
   border-bottom: 1px solid var(--line);
   align-items: center;
+  color: #4c554d;
+  font-size: 12px;
 }
-.summary-line span:first-child {
-  display: grid;
-  gap: 4px;
+.summary-table-head {
+  color: #5a655c;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 10px;
 }
-.summary-line small {
-  color: var(--muted);
+.summary-table-row > :not(:first-child) {
+  text-align: right;
+}
+.summary-table-row .qty {
+  justify-content: flex-end;
+}
+.summary-table-row .qty button {
+  width: 20px;
+  height: 20px;
+  font-size: 15px;
+}
+.summary-table-row strong {
+  color: #252c26;
 }
 .deduction {
   color: var(--green);
@@ -529,68 +594,115 @@ aside button.nav-active {
   color: var(--muted);
   font-size: 13px;
 }
-.code-input {
-  max-width: 250px;
-  display: block;
-  border: 1px solid #bcc2ba;
+.code-grid {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 20px auto 10px;
+}
+.code-box {
+  width: 38px;
+  height: 42px;
+  padding: 0;
+  border: 1px solid #aeb5ad;
+  border-radius: 3px;
+  background: #fff;
   text-align: center;
-  font-size: 24px;
-  letter-spacing: 10px;
-  margin: 20px auto;
+  font-size: 20px;
+  font-weight: 700;
+}
+.code-box:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 2px #087b3d22;
+}
+.resend-copy {
+  margin: 0 0 16px;
+  text-align: center;
+  font-size: 11px !important;
+}
+.resend-button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--gold);
+  font-weight: 700;
+}
+.resend-button:disabled {
+  cursor: not-allowed;
+  opacity: 1;
+}
+.stale-preview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 12px 0;
 }
 .verification .black-button {
   display: block;
   width: 100%;
   margin-top: 22px;
 }
+.summary-note {
+  margin: 18px 0 0;
+  text-align: center;
+}
 .confirmation-backdrop {
-  min-height: calc(100vh - 62px);
+  position: fixed;
+  inset: 0;
+  z-index: 25;
   display: grid;
   place-items: center;
-  background: #d6d7d6;
+  padding: 24px;
+  background: rgb(0 0 0 / 22%);
 }
 .confirmation-card {
   width: min(100% - 36px, 470px);
-  padding: 32px 42px;
+  padding: 26px 42px 24px;
   text-align: center;
   background: #fff;
   border-radius: 4px;
   box-shadow: 0 10px 30px #1c2b2025;
 }
 .success-mark {
-  width: 60px;
-  height: 60px;
+  width: 46px;
+  height: 46px;
   display: grid;
   place-items: center;
-  margin: 0 auto 20px;
+  margin: 14px auto 8px;
   border: 2px solid var(--green);
   border-radius: 50%;
   color: var(--green);
-  font-size: 38px;
+  font-size: 29px;
 }
 .confirmation-card h1 {
-  font-size: 30px;
+  font-size: 24px;
   color: #171917;
-  margin-bottom: 14px;
+  margin: 0 0 8px;
 }
 .reference {
+  margin: 3px 0;
   font-size: 12px;
   color: var(--muted);
 }
 .confirmation-amount {
   color: var(--green);
   font-family: "Poppins", sans-serif;
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 700;
+  margin: 8px 0;
 }
 .confirmation-card small {
   color: var(--muted);
+}
+.confirmation-card > p:not(.reference):not(.confirmation-amount) {
+  margin: 8px 0;
 }
 .confirmation-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
-  margin-top: 28px;
+  margin-top: 18px;
 }
 .outline-button {
   background: #fff;
@@ -671,43 +783,13 @@ aside button.nav-active {
   .checkout-actions .black-button {
     width: 100%;
   }
-  .selected-panel {
-    overflow: visible;
+  .selected-panel,
+  .summary-card {
+    padding: 12px;
   }
-  .selected-header {
-    display: none;
-  }
+  .selected-header,
   .selected-row {
-    grid-template-columns: 1fr auto;
-    gap: 9px 12px;
-    padding: 14px 0;
-  }
-  .selected-row > span:first-child {
-    grid-column: 1 / -1;
-    font-weight: 700;
-    color: #303830;
-  }
-  .selected-row > span:nth-of-type(2)::before {
-    content: "Price: ";
-    color: var(--muted);
-  }
-  .selected-row > span:nth-of-type(3)::before {
-    content: "Total: ";
-    color: var(--muted);
-  }
-  .selected-row input {
-    width: 100%;
-    min-width: 0;
-  }
-  .qty {
-    justify-self: end;
-  }
-  .summary-line {
-    grid-template-columns: 1fr auto;
-    gap: 8px;
-  }
-  .summary-line .deduction {
-    grid-column: 1/-1;
+    min-width: 530px;
   }
   .summary-totals span {
     gap: 20px;
@@ -721,6 +803,10 @@ aside button.nav-active {
   }
   .logout-actions {
     gap: 10px;
+  }
+  .stale-preview {
+    align-items: stretch;
+    flex-direction: column;
   }
 }
 

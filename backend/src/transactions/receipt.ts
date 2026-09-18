@@ -11,7 +11,8 @@ const money = (value: number) =>
     value / 100,
   );
 let logo: string | undefined;
-const flagPath = resolvePath(projectRoot, "frontend/public/assets/Group 2.png");
+let bankLogo: string | undefined;
+const flagPath = resolvePath(projectRoot, "frontend/public/assets/Group 2@2x.png");
 
 /** Renders only immutable saved details; product or wallet changes cannot rewrite a receipt. */
 /** Returns a PDF buffer using immutable transaction and receipt-party snapshots. */
@@ -36,6 +37,10 @@ export function createReceipt(transaction: SavedTransaction): Promise<Buffer> {
       resolvePath(projectRoot, "frontend/public/assets/Logo.svg"),
       "utf8",
     );
+    bankLogo ??= readFileSync(
+      resolvePath(projectRoot, "frontend/public/assets/white logo (1).svg"),
+      "utf8",
+    );
 
     doc.rect(left, 42, 150, 34).fill(green);
     doc.rect(left + 147, 42, 3, 34).fill(gold);
@@ -44,11 +49,16 @@ export function createReceipt(transaction: SavedTransaction): Promise<Buffer> {
       .font("Helvetica-Bold")
       .fontSize(12)
       .text("Transaction Receipt", left + 14, 54);
-    SVGtoPDF(doc, logo, right - 115, 44, {
+    SVGtoPDF(doc, bankLogo, right - 154, 48, {
       width: 42,
-      height: 42,
+      height: 34,
       preserveAspectRatio: "xMidYMid meet",
-    });
+    } as never);
+    SVGtoPDF(doc, logo, right - 104, 45, {
+      width: 38,
+      height: 38,
+      preserveAspectRatio: "xMidYMid meet",
+    } as never);
     doc.image(flagPath, right - 48, 47, { width: 30, height: 24 });
     doc
       .strokeColor(green)
@@ -79,7 +89,7 @@ export function createReceipt(transaction: SavedTransaction): Promise<Buffer> {
       left + 52,
       detailY,
     );
-    label("Reference:", left, detailY + 14);
+    label("Reference Number:", left, detailY + 14);
     value(transaction.id.slice(0, 18), left + 52, detailY + 14);
     label("Wallet:", left, detailY + 28);
     value(transaction.receiptParties.walletName, left + 52, detailY + 28);
@@ -179,10 +189,14 @@ export function createReceipt(transaction: SavedTransaction): Promise<Buffer> {
         width: pageWidth,
         align: "center",
       });
-    doc
-      .fillColor("#eef3ef")
-      .rect(0, doc.page.height - 70, doc.page.width, 70)
-      .fill();
+    const footerTop = doc.page.height - 70;
+    doc.fillColor("#eef3ef").rect(0, footerTop, doc.page.width, 70).fill();
+    // Small repeating teeth reproduce the supplied receipt's torn-paper edge.
+    doc.fillColor("#fff").moveTo(0, footerTop);
+    for (let x = 0; x < doc.page.width; x += 18) {
+      doc.lineTo(x + 9, footerTop + 10).lineTo(x + 18, footerTop);
+    }
+    doc.lineTo(doc.page.width, footerTop).lineTo(0, footerTop).fill();
     doc
       .fillColor(green)
       .rect(0, doc.page.height - 60, 20, 38)

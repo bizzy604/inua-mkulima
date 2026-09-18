@@ -26,17 +26,17 @@ export function ConfirmationPage({
   return (
     <div className="confirmation-backdrop">
       <section className="confirmation-card">
-        <div className="success-mark">✓</div>
-        <p className="eyebrow">PAYMENT COMPLETE</p>
-        <h1>Payment successful</h1>
+        <h1>Payment Successful</h1>
         <p className="reference">
-          Reference <strong>{transaction.id}</strong>
+          Ref Number: <strong>{transaction.id.slice(0, 18)}</strong>
         </p>
+        <p className="reference">Date: <strong>{new Date(transaction.createdAt).toLocaleDateString("en-GB", { dateStyle: "long" })}</strong></p>
+        <div className="success-mark" aria-label="Payment complete">✓</div>
         <p className="confirmation-amount">
           {money(transaction.deductionTotalMinor)}
         </p>
         <p>
-          Subsidy purchase for
+          Agrovet product purchase for
           <br />
           <strong>{transaction.receiptParties.farmer.name}</strong>
           <br />

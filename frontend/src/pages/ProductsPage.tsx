@@ -114,11 +114,15 @@ export function ProductsPage({
       <div className="page-heading">
         <div>
           <p className="eyebrow">DASHBOARD</p>
-          <h1>Product details</h1>
+          <h1>Product Details</h1>
         </div>
         <div className="wallet-chip">
           Wallet balance <strong>{wallet?.formattedBalance ?? "..."}</strong>
         </div>
+      </div>
+      <div className="breadcrumb-row">
+        <button type="button" className="breadcrumb-back" onClick={() => navigate("/products")}>‹&nbsp; Back</button>
+        <span>Product Details</span>
       </div>
       {loading ? (
         <div className="state-panel">Loading products...</div>
@@ -131,6 +135,14 @@ export function ProductsPage({
         </div>
       ) : (
         <>
+          {!products.length ? (
+            <div className="state-panel">
+              <h2>No products are available</h2>
+              <p>The product catalogue is empty. Try again shortly.</p>
+              <button className="outline-button" onClick={load}>Retry</button>
+            </div>
+          ) : (
+          <>
           <div className="selection-grid">
             <section>
               <h2>Products</h2>
@@ -171,9 +183,11 @@ export function ProductsPage({
                     {lines.map((line) => {
                       const product = products.find(
                         (item) => item.id === line.productId,
-                      )!;
+                      );
+                      if (!product) return null;
                       const lineTotal =
                         line.quantity * line.expectedUnitPriceMinor;
+                      const overLine = line.deductionMinor > lineTotal;
                       return (
                         <div className="selected-row" key={line.productId}>
                           <span>{product.name}</span>
@@ -195,6 +209,7 @@ export function ProductsPage({
                           <span>{money(product.priceMinor)}</span>
                           <span>{money(lineTotal)}</span>
                           <input
+                            className={overLine ? "invalid-input" : undefined}
                             aria-label={`Deduction for ${product.name}`}
                             inputMode="numeric"
                             value={
@@ -209,6 +224,9 @@ export function ProductsPage({
                               })
                             }
                           />
+                          {overLine && (
+                            <small className="line-warning">Cannot exceed {money(lineTotal)}</small>
+                          )}
                         </div>
                       );
                     })}
@@ -222,10 +240,12 @@ export function ProductsPage({
             </section>
           </div>
           <div className="checkout-actions">
-            <p>
-              Any amount not covered by the subsidy is collected from the
-              customer.
+            <p className="subsidy-note">
+              You will receive {money(total)} from the subsidy program. If this does not cover the total cost of the purchase, ensure you get the balance from the customer.
             </p>
+            {wallet !== null && total > wallet.balanceMinor && (
+              <p className="line-warning wallet-warning" role="alert">Deduction exceeds the available wallet balance.</p>
+            )}
             <button
               className="black-button"
               disabled={invalid}
@@ -234,6 +254,8 @@ export function ProductsPage({
               Deduct {money(total)} <span>→</span>
             </button>
           </div>
+          </>
+          )}
         </>
       )}
     </>
