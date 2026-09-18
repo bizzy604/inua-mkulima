@@ -253,9 +253,12 @@ Explicit exclusions include registration, password recovery, role management, fa
 
 ## Repository guide
 
-- `frontend/src/App.tsx`: route-level login, selection, summary, confirmation, and logout flow.
+- `frontend/src/App.tsx`: route and session-state composition only.
 - `frontend/src/api.ts`: typed fetch wrapper and money formatting.
-- `frontend/src/styles.css`: responsive application styling.
+- `frontend/src/cart/cart.ts`: cart state shape, payload conversion, and deduction totals.
+- `frontend/src/components/Shell.tsx`: authenticated header, sidebar, and logout layout.
+- `frontend/src/pages/`: isolated Login, Products, Summary, and Confirmation screens.
+- `frontend/src/styles.css`: responsive application styling shared by the pages and components.
 - `backend/src/app.ts`: Express middleware and route composition.
 - `backend/src/db/`: SQLite connection, migration, seed, dump, and restore logic.
 - `backend/src/transactions/`: validation, preview, atomic purchase service, routes, and PDF receipt.
