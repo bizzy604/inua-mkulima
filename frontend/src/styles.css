@@ -1,6 +1,6 @@
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
 :root {
-  font-family: "DM Sans", sans-serif;
+  font-family: "Poppins", sans-serif;
   color: #181818;
   background: #f5f6f2;
   font-synthesis: none;
@@ -118,7 +118,7 @@ input:focus-visible {
 .login-card h1,
 .page-heading h1,
 .confirmation-card h1 {
-  font-family: "Space Grotesk", sans-serif;
+  font-family: "Poppins", sans-serif;
   color: var(--green);
   font-size: 36px;
   line-height: 1.08;
@@ -217,7 +217,7 @@ input:focus {
     url("/assets/bg@2x.png") center/cover;
 }
 .topbar-title {
-  font-family: "Space Grotesk", sans-serif;
+  font-family: "Poppins", sans-serif;
   font-size: 20px;
   font-weight: 700;
 }
@@ -532,7 +532,7 @@ aside button.nav-active {
 }
 .confirmation-amount {
   color: var(--green);
-  font-family: "Space Grotesk", sans-serif;
+  font-family: "Poppins", sans-serif;
   font-size: 28px;
   font-weight: 700;
 }
