@@ -236,6 +236,53 @@ input:focus {
   color: #fff;
   border: 1px solid #ffffff70;
 }
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: #0006;
+}
+.logout-dialog {
+  width: min(100%, 500px);
+  padding: 30px 34px;
+  border-radius: 4px;
+  background: #fff;
+  box-shadow: 0 16px 42px #0003;
+  text-align: center;
+}
+.logout-dialog h2 {
+  margin: 0;
+  color: #171917;
+  font-size: 18px;
+}
+.logout-dialog p {
+  margin: 20px 0 24px;
+  color: #424842;
+  font-size: 13px;
+}
+.logout-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 52px;
+  margin: 24px auto 0;
+  border: 2px solid #898e89;
+  border-radius: 5px;
+  color: var(--gold);
+  font-size: 25px;
+  line-height: 1;
+}
+.logout-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.logout-actions button {
+  width: 100%;
+}
 .app-body {
   display: grid;
   grid-template-columns: 220px 1fr;
@@ -668,6 +715,12 @@ aside button.nav-active {
   .confirmation-card {
     margin: 18px;
     padding: 28px 20px;
+  }
+  .logout-dialog {
+    padding: 28px 20px;
+  }
+  .logout-actions {
+    gap: 10px;
   }
 }
 
