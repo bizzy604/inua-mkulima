@@ -46,10 +46,6 @@ export function LoginPage({ onSuccess }: { onSuccess: () => void }) {
           src="/assets/logo%20(2).svg"
           alt="Inua Mkulima"
         />
-        <div className="visual-caption">
-          <img src="/assets/Logo.svg" alt="Co-operative Bank" />
-          <span>Growing access for every harvest.</span>
-        </div>
       </section>
       <section className="login-panel">
         <div className="login-card">
