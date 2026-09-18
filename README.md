@@ -4,7 +4,6 @@ Inua Mkulima is a small full-stack agro-dealer checkout application for the Coop
 
 The repository contains a React/Vite frontend and a Node.js/Express backend. SQLite owns the financial transaction. RabbitMQ carries a post-purchase activity event, and Winston writes structured events to a rotated local file and to Grafana Loki.
 
-This is an assessment application with fictional data and simulated verification. It is not a live banking, subsidy, SMS, or payment system.
 
 ## Delivered scope
 
