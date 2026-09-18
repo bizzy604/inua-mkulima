@@ -17,6 +17,7 @@
 body {
   margin: 0;
   min-width: 320px;
+  background: #f5f5f3;
 }
 button,
 input {
@@ -48,15 +49,17 @@ input:focus-visible {
 }
 .login-page {
   min-height: 100vh;
+  padding: 5vh 4vw;
   display: grid;
   grid-template-columns: 1.1fr 0.9fr;
   background: #f4f5f2;
 }
 .login-visual {
   position: relative;
-  min-height: 100vh;
+  min-height: calc(100vh - 10vh);
   overflow: hidden;
   background: #184b28;
+  border-radius: 2px 0 0 2px;
 }
 .login-visual > img {
   width: 100%;
@@ -81,19 +84,23 @@ input:focus-visible {
 .login-panel {
   display: grid;
   place-items: center;
-  padding: 32px;
+  padding: 32px 6vw;
+  background: #fff;
 }
 .login-card {
   width: min(100%, 480px);
-  padding: 54px 58px;
-  background: #fff;
+  padding: 70px 48px 58px;
+  background: #fff url("/assets/green-leaves-white-background.png") no-repeat
+    top right;
+  background-size: 170px auto;
   border: 1px solid #e3e5df;
-  box-shadow: 0 15px 45px #173d2617;
+  box-shadow: 0 10px 24px #173d2620;
+  border-radius: 4px;
 }
 .brand-mark {
-  width: 48px;
-  height: 48px;
-  float: right;
+  width: 0;
+  height: 0;
+  overflow: hidden;
 }
 .eyebrow {
   margin: 0 0 8px;
@@ -193,15 +200,15 @@ input:focus {
   background: #f5f6f2;
 }
 .topbar {
-  min-height: 70px;
-  padding: 0 34px;
+  min-height: 62px;
+  padding: 0 28px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   color: #fff;
   background:
-    linear-gradient(90deg, #102f18dd, #835f00e8),
-    url("/assets/header.png") center/cover;
+    linear-gradient(90deg, #102f18e8, #835f00dd),
+    url("/assets/bg@2x.png") center/cover;
 }
 .topbar-title {
   font-family: "Space Grotesk", sans-serif;
@@ -226,7 +233,7 @@ input:focus {
 .app-body {
   display: grid;
   grid-template-columns: 220px 1fr;
-  min-height: calc(100vh - 70px);
+  min-height: calc(100vh - 62px);
 }
 aside {
   padding: 30px 0;
@@ -251,7 +258,7 @@ aside button.nav-active {
 .workspace {
   max-width: 1200px;
   width: 100%;
-  padding: 44px 56px;
+  padding: 34px 42px;
   margin: 0 auto;
 }
 .page-heading {
@@ -275,8 +282,8 @@ aside button.nav-active {
 }
 .selection-grid {
   display: grid;
-  grid-template-columns: 1fr 1.2fr;
-  gap: 28px;
+  grid-template-columns: minmax(280px, 0.9fr) minmax(390px, 1.15fr);
+  gap: 18px;
 }
 .selection-grid h2,
 .verification h2 {
@@ -287,9 +294,10 @@ aside button.nav-active {
 .selected-panel,
 .summary-card,
 .verification {
-  border: 1px solid #bec4bb;
+  border: 1px solid #bfc3bd;
   background: #fff;
-  box-shadow: 0 3px 8px #29402910;
+  box-shadow: 0 2px 5px #29402912;
+  border-radius: 4px;
 }
 .product-list {
   padding: 15px 18px;
@@ -320,6 +328,7 @@ aside button.nav-active {
   min-height: 150px;
   padding: 15px;
   background: var(--cream);
+  overflow: hidden;
 }
 .empty-selection {
   display: grid;
@@ -482,17 +491,18 @@ aside button.nav-active {
   margin-top: 22px;
 }
 .confirmation-backdrop {
-  min-height: calc(100vh - 70px);
+  min-height: calc(100vh - 62px);
   display: grid;
   place-items: center;
-  background: #daddd9;
+  background: #d6d7d6;
 }
 .confirmation-card {
-  width: min(100%, 520px);
-  padding: 42px;
+  width: min(100% - 36px, 470px);
+  padding: 32px 42px;
   text-align: center;
   background: #fff;
-  box-shadow: 0 10px 40px #1c2b201c;
+  border-radius: 4px;
+  box-shadow: 0 10px 30px #1c2b2025;
 }
 .success-mark {
   width: 60px;
@@ -540,16 +550,21 @@ aside button.nav-active {
 @media (max-width: 800px) {
   .login-page {
     display: block;
+    padding: 0;
   }
   .login-visual {
-    min-height: 30vh;
-    max-height: 300px;
+    min-height: 220px;
+    max-height: 34vh;
+    border-radius: 0;
   }
   .login-panel {
-    padding: 20px;
+    min-height: 66vh;
+    padding: 24px 16px;
   }
   .login-card {
-    padding: 30px 24px;
+    width: min(100%, 430px);
+    padding: 56px 24px 30px;
+    background-size: 130px auto;
   }
   .login-card h1 {
     font-size: 30px;
@@ -572,7 +587,7 @@ aside button.nav-active {
     border-bottom-color: var(--gold);
   }
   .workspace {
-    padding: 28px 18px;
+    padding: 24px 14px 36px;
   }
   .topbar {
     padding: 0 18px;
@@ -599,11 +614,35 @@ aside button.nav-active {
     width: 100%;
   }
   .selected-panel {
-    overflow-x: auto;
+    overflow: visible;
   }
-  .selected-header,
+  .selected-header {
+    display: none;
+  }
   .selected-row {
-    min-width: 600px;
+    grid-template-columns: 1fr auto;
+    gap: 9px 12px;
+    padding: 14px 0;
+  }
+  .selected-row > span:first-child {
+    grid-column: 1 / -1;
+    font-weight: 700;
+    color: #303830;
+  }
+  .selected-row > span:nth-of-type(2)::before {
+    content: "Price: ";
+    color: var(--muted);
+  }
+  .selected-row > span:nth-of-type(3)::before {
+    content: "Total: ";
+    color: var(--muted);
+  }
+  .selected-row input {
+    width: 100%;
+    min-width: 0;
+  }
+  .qty {
+    justify-self: end;
   }
   .summary-line {
     grid-template-columns: 1fr auto;
@@ -618,5 +657,14 @@ aside button.nav-active {
   .confirmation-card {
     margin: 18px;
     padding: 28px 20px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .app-shell {
+    width: min(1120px, calc(100vw - 80px));
+    min-height: calc(100vh - 80px);
+    margin: 40px auto;
+    box-shadow: 0 1px 8px #20302118;
   }
 }
