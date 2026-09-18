@@ -2,8 +2,13 @@
   "name": "inua-mkulima",
   "version": "1.0.0",
   "private": true,
-  "workspaces": ["backend", "frontend"],
-  "engines": { "node": ">=24 <25" },
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "engines": {
+    "node": ">=24 <25"
+  },
   "scripts": {
     "setup:local": "node backend/scripts/setup-local.mjs",
     "dev": "npm run dev --workspace backend",
