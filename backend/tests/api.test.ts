@@ -20,6 +20,24 @@ describe("authenticated checkout API", () => {
       .expect(200);
     return { client, response };
   }
+  it("serves the OpenAPI document and Swagger UI without authentication", async () => {
+    const document = await request(f.app)
+      .get("/api-docs.json")
+      .expect(200)
+      .expect("Content-Type", /application\/json/);
+    expect(document.body.openapi).toBe("3.0.3");
+    expect(document.body.paths["/transactions"]).toBeDefined();
+    expect(document.body.components.securitySchemes.cookieAuth).toBeDefined();
+
+    await request(f.app)
+      .get("/api-docs")
+      .expect(200)
+      .expect("Content-Type", /text\/html/)
+      .expect((response) => {
+        if (!response.text.includes("SwaggerUIBundle"))
+          throw new Error("Swagger UI bootstrap was not served.");
+      });
+  });
   it("enforces origin, credentials, authenticated routes, secure cookie attributes and logout", async () => {
     await request(f.app).get("/api/products").expect(401);
     await request(f.app)

@@ -4,7 +4,6 @@ Inua Mkulima is a small full-stack agro-dealer checkout application for the Coop
 
 The repository contains a React/Vite frontend and a Node.js/Express backend. SQLite owns the financial transaction. RabbitMQ carries a post-purchase activity event, and Winston writes structured events to a rotated local file and to Grafana Loki.
 
-
 ## Delivered scope
 
 ### Frontend
@@ -98,6 +97,13 @@ Open http://localhost:5173. Vite proxies `/api` to `http://localhost:3000`, so b
 
 The configured development browser origin is `http://localhost:5173`. Every mutation, including login and logout, requires that Origin. For a built same-origin deployment, set `APP_ORIGIN=http://localhost:3000`; Express serves `frontend/dist` after `npm run build`.
 
+Backend API documentation is available without authentication at:
+
+- Swagger UI: http://localhost:3000/api-docs
+- OpenAPI JSON: http://localhost:3000/api-docs.json
+
+The document is maintained in `backend/src/openapi.ts` and describes the implemented session, product, wallet, preview, payment, transaction-history, and receipt endpoints. Swagger UI loads its presentation assets from the pinned public CDN URL; the API contract itself is served locally by Express.
+
 Demo credentials:
 
 - Username: `demo`
@@ -109,20 +115,20 @@ Verification is simulated. No SMS is sent.
 
 ## Commands
 
-| Command | Purpose |
-| --- | --- |
-| `npm run dev` | Start the backend in watch mode |
-| `npm run dev --workspace frontend` | Start the Vite frontend on port 5173 |
-| `npm run build` | Build the frontend, compile the backend, and copy runtime assets |
-| `npm start` | Start the compiled backend; it does not seed or reset data |
-| `npm run typecheck` | Typecheck both workspaces |
-| `npm test` | Run the backend API, database, concurrency, infrastructure-isolation, and evaluation tests |
-| `npm run test:eval` | Run the deterministic varied-cart evaluation |
-| `npm run test:infra` | Verify real RabbitMQ and Loki behavior; requires Docker services |
-| `npm run db:migrate` | Apply numbered business migrations |
-| `npm run db:seed` | Insert missing fictional products and wallet without replenishing a spent wallet |
-| `npm run db:reset` | Reset local demo business data only when explicitly confirmed |
-| `npm run db:dump` | Write a restorable business-data SQL dump |
+| Command                            | Purpose                                                                                    |
+| ---------------------------------- | ------------------------------------------------------------------------------------------ |
+| `npm run dev`                      | Start the backend in watch mode                                                            |
+| `npm run dev --workspace frontend` | Start the Vite frontend on port 5173                                                       |
+| `npm run build`                    | Build the frontend, compile the backend, and copy runtime assets                           |
+| `npm start`                        | Start the compiled backend; it does not seed or reset data                                 |
+| `npm run typecheck`                | Typecheck both workspaces                                                                  |
+| `npm test`                         | Run the backend API, database, concurrency, infrastructure-isolation, and evaluation tests |
+| `npm run test:eval`                | Run the deterministic varied-cart evaluation                                               |
+| `npm run test:infra`               | Verify real RabbitMQ and Loki behavior; requires Docker services                           |
+| `npm run db:migrate`               | Apply numbered business migrations                                                         |
+| `npm run db:seed`                  | Insert missing fictional products and wallet without replenishing a spent wallet           |
+| `npm run db:reset`                 | Reset local demo business data only when explicitly confirmed                              |
+| `npm run db:dump`                  | Write a restorable business-data SQL dump                                                  |
 
 For an intentional local demo reset, stop the backend first and run:
 
@@ -150,21 +156,21 @@ Remove-Item Env:DATABASE_PATH
 
 All normal responses use `{ "data": ... }`. Errors use `{ "error": { "code", "message", "requestId", "fields?" } }`. Responses include `X-Request-ID`. Protected routes require the server session and use the wallet assigned to that session; clients cannot choose an arbitrary wallet.
 
-| Method | Path | Purpose |
-| --- | --- | --- |
-| `POST` | `/api/auth/login` | Establish a server session from `{username,password}` |
-| `GET` | `/api/auth/me` | Restore dealer and wallet context |
-| `POST` | `/api/auth/logout` | Destroy the session |
-| `GET` | `/api/products` | List active products |
-| `POST` | `/api/products` | Create a product |
-| `PATCH` | `/api/products/:id` | Update a product |
-| `DELETE` | `/api/products/:id` | Deactivate a product |
-| `GET` | `/api/wallet` | Retrieve the assigned wallet and formatted KES balance |
-| `POST` | `/api/transactions/preview` | Validate and calculate without writing |
-| `POST` | `/api/transactions` | Verify and atomically complete or safely replay a purchase |
-| `GET` | `/api/transactions?limit=20&offset=0` | List owned purchases |
-| `GET` | `/api/transactions/:id` | Retrieve an owned saved purchase |
-| `GET` | `/api/transactions/:id/receipt` | Download a PDF built from saved snapshots |
+| Method   | Path                                  | Purpose                                                    |
+| -------- | ------------------------------------- | ---------------------------------------------------------- |
+| `POST`   | `/api/auth/login`                     | Establish a server session from `{username,password}`      |
+| `GET`    | `/api/auth/me`                        | Restore dealer and wallet context                          |
+| `POST`   | `/api/auth/logout`                    | Destroy the session                                        |
+| `GET`    | `/api/products`                       | List active products                                       |
+| `POST`   | `/api/products`                       | Create a product                                           |
+| `PATCH`  | `/api/products/:id`                   | Update a product                                           |
+| `DELETE` | `/api/products/:id`                   | Deactivate a product                                       |
+| `GET`    | `/api/wallet`                         | Retrieve the assigned wallet and formatted KES balance     |
+| `POST`   | `/api/transactions/preview`           | Validate and calculate without writing                     |
+| `POST`   | `/api/transactions`                   | Verify and atomically complete or safely replay a purchase |
+| `GET`    | `/api/transactions?limit=20&offset=0` | List owned purchases                                       |
+| `GET`    | `/api/transactions/:id`               | Retrieve an owned saved purchase                           |
+| `GET`    | `/api/transactions/:id/receipt`       | Download a PDF built from saved snapshots                  |
 
 Money values in API and database fields are integer KES minor units: `100` means KES 1.00. Technical input limits are 50 distinct lines and quantities from 1 to 999. A deduction is entered per line, not multiplied again by quantity.
 

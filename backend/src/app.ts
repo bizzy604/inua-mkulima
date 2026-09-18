@@ -13,6 +13,7 @@ import { productRoutes } from "./products/routes.js";
 import { walletRoutes } from "./wallets/routes.js";
 import { transactionRoutes } from "./transactions/routes.js";
 import { AppError, errorHandler } from "./middleware/errors.js";
+import { openApiDocument, swaggerUiHtml } from "./openapi.js";
 
 export interface RequestLogger {
   info(message: string, meta?: Record<string, unknown>): void;
@@ -79,6 +80,10 @@ export function createApp(options: {
   app.get("/api/health", (_req, res) => {
     db.prepare("SELECT 1").get();
     res.json({ data: { status: "ok" } });
+  });
+  app.get("/api-docs.json", (_req, res) => res.json(openApiDocument));
+  app.get("/api-docs", (_req, res) => {
+    res.type("html").send(swaggerUiHtml);
   });
   app.use("/api/auth", authRoutes(db, config));
   app.use("/api/products", requireAuth, productRoutes(db));
