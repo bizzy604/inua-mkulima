@@ -1,0 +1,52 @@
+{
+  "name": "@inua/backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc -p tsconfig.build.json && node scripts/copy-assets.mjs",
+    "start": "node dist/server.js",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:eval": "vitest run tests/evaluation.test.ts",
+    "test:infra": "tsx scripts/verify-infra.ts",
+    "db:migrate": "tsx src/db/cli.ts migrate",
+    "db:seed": "tsx src/db/cli.ts seed",
+    "db:reset": "tsx src/db/cli.ts reset",
+    "db:dump": "tsx src/db/cli.ts dump"
+  },
+  "dependencies": {
+    "amqplib": "2.0.1",
+    "bcryptjs": "3.0.3",
+    "better-sqlite3": "13.0.3",
+    "better-sqlite3-session-store": "0.1.0",
+    "dotenv": "18.0.0",
+    "express": "5.2.1",
+    "express-rate-limit": "8.7.0",
+    "express-session": "1.19.0",
+    "helmet": "8.3.0",
+    "pdfkit": "0.20.2",
+    "svg-to-pdfkit": "0.1.8",
+    "winston": "3.19.0",
+    "winston-transport": "4.9.0",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@types/amqplib": "0.10.8",
+    "@types/better-sqlite3": "9.6.0",
+    "@types/express": "5.0.6",
+    "@types/express-session": "1.19.0",
+    "@types/node": "24.13.5",
+    "@types/pdfkit": "0.17.6",
+    "@types/supertest": "7.2.1",
+    "@types/svg-to-pdfkit": "0.1.4",
+    "supertest": "7.2.2",
+    "tsx": "4.23.13",
+    "typescript": "7.0.2",
+    "vitest": "5.0.1"
+  }
+}
