@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { randomUUID } from "node:crypto";
+import { inflateSync } from "node:zlib";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -17,6 +18,16 @@ import {
   type CartPayload,
 } from "../src/transactions/schemas.js";
 import { createReceipt } from "../src/transactions/receipt.js";
+
+function receiptText(pdf: Buffer) {
+  return [...pdf.toString("latin1").matchAll(/stream\r?\n([\s\S]*?)\r?\nendstream/g)].map(match => {
+    try {
+      const stream = inflateSync(Buffer.from(match[1]!, "latin1")).toString("latin1");
+      return [...stream.matchAll(/<([a-f0-9]+)>/gi)]
+        .map(part => Buffer.from(part[1]!, "hex").toString("latin1")).join("");
+    } catch { return ""; } // Images and non-text streams have no receipt text.
+  }).join("\n");
+}
 
 const dealer = "demo-dealer";
 const cart = (): CartPayload => ({
@@ -142,6 +153,13 @@ describe("persisted purchases and accounting invariants", () => {
     const pdf = await createReceipt(transaction);
     expect(pdf.subarray(0, 5).toString()).toBe("%PDF-");
     expect(pdf.length).toBeGreaterThan(1000);
+    // Footer text must remain on the receipt, not spill into a blank second page.
+    expect([...pdf.toString("latin1").matchAll(/\/Type \/Page\b/g)]).toHaveLength(1);
+    const text = receiptText(pdf);
+    expect(text).toContain("Transaction Receipt");
+    expect(text).toContain(transaction.id);
+    expect(text).toContain("PAGE 1 OF 1");
+    expect(text).toContain("Customer balance payable separately");
   });
   it("A14: a receipt paginates fifty long product names and includes the provided vector logo", async () => {
     const value: CartPayload = { items: [], expectedDeductionTotalMinor: 50 };
@@ -165,6 +183,11 @@ describe("persisted purchases and accounting invariants", () => {
     ).toBeGreaterThan(3);
     // The source logo contains gradients; PDFKit serializes them as shadings.
     expect(pdf.toString("latin1")).toContain("/Shading");
+    const pages = [...pdf.toString("latin1").matchAll(/\/Type \/Page\b/g)].length;
+    const text = receiptText(pdf);
+    expect(text.match(/Transaction Receipt/g)).toHaveLength(pages);
+    expect(text.match(/Product name/g)).toHaveLength(pages);
+    for (let page = 1; page <= pages; page++) expect(text).toContain(`PAGE ${page} OF ${pages}`);
   });
   it("A19: migration/seed are repeatable and restart plus SQL restore preserve purchases", () => {
     const first = purchase();

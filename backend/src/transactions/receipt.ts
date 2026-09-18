@@ -1,219 +1,153 @@
-/** Renders a saved transaction without reading mutable product or wallet data. */
+/** Receipt layout follows public/screenshots/receipt.png; values are saved snapshots. */
 import PDFDocument from "pdfkit";
 import SVGtoPDF from "svg-to-pdfkit";
 import { readFileSync } from "node:fs";
-import { resolve as resolvePath } from "node:path";
+import { resolve } from "node:path";
 import { projectRoot } from "../config.js";
 import type { SavedTransaction } from "./service.js";
 
-const money = (value: number) =>
-  new Intl.NumberFormat("en-KE", { style: "currency", currency: "KES" }).format(
-    value / 100,
-  );
-let logo: string | undefined;
-let bankLogo: string | undefined;
-const flagPath = resolvePath(projectRoot, "frontend/public/assets/Group 2@2x.png");
+const amount = (minor: number) => new Intl.NumberFormat("en-KE", {
+  minimumFractionDigits: 2, maximumFractionDigits: 2,
+}).format(minor / 100);
+let marks: { bank: string; county: string; kenya: Buffer } | undefined;
+// Let the PDF viewport size the SVG instead of its exported pixel dimensions.
+function fitViewport(svg: string) {
+  return svg.replace(/<svg\b[^>]*>/, root => root
+    .replace(/\bwidth="[^"]+"/, 'width="100%"')
+    .replace(/\bheight="[^"]+"/, 'height="100%"'));
+}
+function receiptMarks() {
+  if (!marks) {
+    const assets = resolve(projectRoot, "frontend/public/assets");
+    // Crop the supplied login-corner SVG viewport to its original county crest.
+    const county = readFileSync(resolve(assets, "Logo.svg"), "utf8")
+      .replace(/viewBox="[^"]+"/, 'viewBox="163.126 152.136 140.594 159.729"');
+    marks = {
+      bank: fitViewport(readFileSync(resolve(assets, "white logo (1).svg"), "utf8")),
+      county: fitViewport(county),
+      kenya: readFileSync(resolve(assets, "Group 2@2x.png")),
+    };
+  }
+  return marks;
+}
 
-/** Renders only immutable saved details; product or wallet changes cannot rewrite a receipt. */
-/** Returns a PDF buffer using immutable transaction and receipt-party snapshots. */
 export function createReceipt(transaction: SavedTransaction): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolveBuffer, reject) => {
     const doc = new PDFDocument({
-      size: "A4",
-      margin: 42,
-      info: { Title: "Inua Mkulima purchase receipt", Author: "Inua Mkulima" },
+      size: "A4", margin: 0, bufferPages: true,
+      info: { Title: "Transaction Receipt", Author: "Inua Mkulima" },
     });
     const chunks: Buffer[] = [];
     doc.on("data", (chunk: Buffer) => chunks.push(chunk));
-    doc.on("end", () => resolve(Buffer.concat(chunks)));
+    doc.on("end", () => resolveBuffer(Buffer.concat(chunks)));
     doc.on("error", reject);
-    const pageWidth =
-      doc.page.width - doc.page.margins.left - doc.page.margins.right;
-    const left = doc.page.margins.left;
-    const right = doc.page.width - doc.page.margins.right;
-    const green = "#006b2d";
-    const gold = "#f4c400";
-    logo ??= readFileSync(
-      resolvePath(projectRoot, "frontend/public/assets/Logo.svg"),
-      "utf8",
-    );
-    bankLogo ??= readFileSync(
-      resolvePath(projectRoot, "frontend/public/assets/white logo (1).svg"),
-      "utf8",
-    );
+    const logos = receiptMarks();
+    const green = "#006729", gold = "#e8c34b";
+    const left = 22, width = doc.page.width - left * 2, right = left + width;
+    const columns = [0, 168, 262, 355, 448, width];
+    const headers = ["Product name", "Quantity", "Price", "Total Amount", "Deduction"];
+    const bodyBottom = 685;
 
-    doc.rect(left, 42, 150, 34).fill(green);
-    doc.rect(left + 147, 42, 3, 34).fill(gold);
-    doc
-      .fillColor("#fff")
-      .font("Helvetica-Bold")
-      .fontSize(12)
-      .text("Transaction Receipt", left + 14, 54);
-    SVGtoPDF(doc, bankLogo, right - 154, 48, {
-      width: 42,
-      height: 34,
-      preserveAspectRatio: "xMidYMid meet",
-    } as never);
-    SVGtoPDF(doc, logo, right - 104, 45, {
-      width: 38,
-      height: 38,
-      preserveAspectRatio: "xMidYMid meet",
-    } as never);
-    doc.image(flagPath, right - 48, 47, { width: 30, height: 24 });
-    doc
-      .strokeColor(green)
-      .lineWidth(1.2)
-      .moveTo(left, 92)
-      .lineTo(right, 92)
-      .stroke();
-    doc
-      .fillColor("#777")
-      .font("Helvetica")
-      .fontSize(7)
-      .text("PAGE 1 OF 1", right - 38, 98);
-
-    const detailY = 118;
-    const label = (text: string, x: number, y: number) =>
-      doc.fillColor("#222").font("Helvetica-Bold").fontSize(8).text(text, x, y);
-    const value = (text: string, x: number, y: number, width = 125) =>
-      doc
-        .fillColor(green)
-        .font("Helvetica-Bold")
-        .fontSize(8)
-        .text(text, x, y, { width });
-    label("Date:", left, detailY);
-    value(
-      new Date(transaction.createdAt).toLocaleDateString("en-GB", {
-        dateStyle: "medium",
-      }),
-      left + 52,
-      detailY,
-    );
-    label("Reference Number:", left, detailY + 14);
-    value(transaction.id.slice(0, 18), left + 52, detailY + 14);
-    label("Wallet:", left, detailY + 28);
-    value(transaction.receiptParties.walletName, left + 52, detailY + 28);
-    label("Farmer Name/ID:", left, detailY + 42);
-    value(
-      `${transaction.receiptParties.farmer.name} / ${transaction.receiptParties.farmer.reference}`,
-      left + 82,
-      detailY + 42,
-      145,
-    );
-    label("Farmer Phone No:", left, detailY + 56);
-    value(transaction.receiptParties.farmer.phone, left + 82, detailY + 56);
-    label("Agro-dealer Name:", left + 315, detailY);
-    value(transaction.receiptParties.dealer.name, left + 397, detailY, 110);
-    label("Merchant ID:", left + 315, detailY + 14);
-    value(transaction.receiptParties.dealer.id, left + 397, detailY + 14, 110);
-    label("Phone Number:", left + 315, detailY + 28);
-    value("Demo contact", left + 397, detailY + 28, 110);
-
-    const tableTop = 215;
-    const columns = [0, 150, 235, 315, 410, pageWidth];
-    const headers = [
-      "Product Code",
-      "Quantity",
-      "Price",
-      "Total Amount",
-      "Deduction",
-    ];
-    doc.rect(left, tableTop, pageWidth, 22).fill(green);
-    doc.font("Helvetica-Bold").fontSize(7).fillColor("#fff");
-    headers.forEach((header, index) =>
-      doc.text(header, left + columns[index] + 8, tableTop + 8, {
-        width: columns[index + 1] - columns[index] - 16,
-        align: index ? "center" : "left",
-      }),
-    );
-    let y = tableTop + 22;
-    transaction.items.forEach((item, index) => {
-      // Keep pagination deterministic without repeatedly measuring long labels.
-      const wrappedLines = Math.max(1, Math.ceil(item.productName.length / 32));
-      const rowHeight = Math.max(20, wrappedLines * 9 + 10);
-      if (y + rowHeight > doc.page.height - 100) {
-        doc.addPage();
-        y = 60;
+    function text(value: string, x: number, y: number, w: number, options: {
+      bold?: boolean; size?: number; color?: string; align?: "left" | "right" | "center";
+    } = {}) {
+      doc.font(options.bold ? "Helvetica-Bold" : "Helvetica")
+        .fontSize(options.size ?? 8.5).fillColor(options.color ?? "#252525")
+        .text(value, x, y, { width: w, align: options.align ?? "left", lineGap: 2 });
+    }
+    function header() {
+      doc.rect(0, 44, 185, 39).fill(green);
+      doc.rect(183, 44, 2, 39).fill(gold);
+      text("Transaction Receipt", 34, 57, 146, { size: 13, color: "#fff" });
+      SVGtoPDF(doc, logos.bank, right - 168, 45, { width: 47, height: 39 });
+      SVGtoPDF(doc, logos.county, right - 96, 44, { width: 34, height: 40 });
+      doc.image(logos.kenya, right - 39, 45, { fit: [39, 39] });
+      doc.moveTo(left, 103).lineTo(right, 103).lineWidth(0.8).strokeColor(green).stroke();
+    }
+    function details(rows: [string, string][], x: number, y: number, labelWidth: number, valueWidth: number) {
+      for (const [label, value] of rows) {
+        text(label, x, y, labelWidth - 5, { size: 8 });
+        text(value, x + labelWidth, y, valueWidth, { size: 8, bold: true, color: green });
+        y += Math.max(15, doc.heightOfString(value, { width: valueWidth, lineGap: 2 }) + 5);
       }
-      if (index % 2 === 1)
-        doc.rect(left, y, pageWidth, rowHeight).fill("#fff7df");
-      doc
-        .fillColor("#333")
-        .font("Helvetica")
-        .fontSize(7)
-        .text(item.productName, left + 6, y + 7, { width: columns[1] - 12 });
-      doc.text(String(item.quantity), left + columns[1], y + 7, {
-        width: columns[2] - columns[1],
-        align: "center",
+      return y;
+    }
+    function tableHeader(y: number) {
+      doc.rect(left, y, width, 26).fill(green);
+      headers.forEach((value, i) => text(value, left + columns[i]! + 6, y + 9,
+        columns[i + 1]! - columns[i]! - 12, { size: 8, color: "#fff", align: i ? "center" : "left" }));
+      return y + 26;
+    }
+    function nextPage() {
+      doc.addPage();
+      header();
+      text("Reference: " + transaction.id + " (continued)", left, 132, width, { size: 8, color: green });
+      return tableHeader(156);
+    }
+
+    header();
+    const farmer = transaction.receiptParties.farmer;
+    const dealer = transaction.receiptParties.dealer;
+    const detailsEnd = details([
+      ["Date:", new Intl.DateTimeFormat("en-GB", {
+        weekday: "short", day: "numeric", month: "long", year: "numeric", timeZone: "Africa/Nairobi",
+      }).format(new Date(transaction.createdAt))],
+      ["Reference Number:", transaction.id],
+      ["Wallet:", transaction.receiptParties.walletName],
+      ["Farmer Name/ID:", farmer.name + " / " + farmer.reference],
+      ["Farmer Phone No:", farmer.phone],
+    ], left, 142, 116, 210);
+    const dealerEnd = details([
+      ["Agro-dealer Name:", dealer.name],
+      ["Merchant ID:", dealer.id],
+    ], right - 176, 142, 97, 79);
+
+    let y = tableHeader(Math.max(248, detailsEnd + 28, dealerEnd + 28));
+    transaction.items.forEach((item, index) => {
+      const values = [item.productName, String(item.quantity), amount(item.unitPriceMinor),
+        amount(item.lineTotalMinor), amount(item.deductionMinor)];
+      doc.font("Helvetica").fontSize(8);
+      const rowHeight = Math.max(22, ...values.map((value, i) =>
+        doc.heightOfString(value, { width: columns[i + 1]! - columns[i]! - 12, lineGap: 2 }) + 14));
+      if (y + rowHeight > bodyBottom) y = nextPage();
+      if (index % 2 === 1) doc.rect(left, y, width, rowHeight).fill("#fcf7e7");
+      values.forEach((value, i) => text(value, left + columns[i]! + 6, y + 7,
+        columns[i + 1]! - columns[i]! - 12, { size: 8, align: i === 0 ? "left" : i === 1 ? "center" : "right" }));
+      columns.slice(1, -1).forEach(x => {
+        doc.moveTo(left + x, y).lineTo(left + x, y + rowHeight).lineWidth(0.3).strokeColor("#eadcab").stroke();
       });
-      doc.text(money(item.unitPriceMinor), left + columns[2], y + 7, {
-        width: columns[3] - columns[2] - 6,
-        align: "right",
-      });
-      doc.text(money(item.lineTotalMinor), left + columns[3], y + 7, {
-        width: columns[4] - columns[3] - 6,
-        align: "right",
-      });
-      doc.text(money(item.deductionMinor), left + columns[4], y + 7, {
-        width: columns[5] - columns[4] - 6,
-        align: "right",
-      });
-      doc
-        .strokeColor("#ead9a1")
-        .lineWidth(0.4)
-        .rect(left, y, pageWidth, rowHeight)
-        .stroke();
       y += rowHeight;
     });
-    doc.rect(left, y, pageWidth, 24).fill(green);
-    doc
-      .fillColor("#fff")
-      .font("Helvetica-Bold")
-      .fontSize(8)
-      .text("TOTAL", left + 350, y + 8, { width: 65, align: "right" });
-    doc
-      .rect(right - 92, y + 3, 88, 18)
-      .fill("#fff")
-      .stroke(green);
-    doc
-      .fillColor(green)
-      .text(money(transaction.deductionTotalMinor), right - 87, y + 8, {
-        width: 78,
-        align: "right",
-      });
-    doc
-      .fillColor(green)
-      .font("Helvetica-Bold")
-      .fontSize(8)
-      .text("Thank you for banking with us.", left, doc.page.height - 100, {
-        width: pageWidth,
-        align: "center",
-      });
-    const footerTop = doc.page.height - 70;
-    doc.fillColor("#eef3ef").rect(0, footerTop, doc.page.width, 70).fill();
-    // Small repeating teeth reproduce the supplied receipt's torn-paper edge.
-    doc.fillColor("#fff").moveTo(0, footerTop);
-    for (let x = 0; x < doc.page.width; x += 18) {
-      doc.lineTo(x + 9, footerTop + 10).lineTo(x + 18, footerTop);
+    if (y + 80 > bodyBottom) y = nextPage();
+    doc.rect(left, y, width, 29).fill(green);
+    text("TOTAL", left + columns[3]!, y + 10, columns[4]! - columns[3]! - 12,
+      { bold: true, size: 8, color: "#fff", align: "right" });
+    const totalX = left + columns[4]!;
+    doc.rect(totalX + 2, y + 4, right - totalX - 4, 21).fill("#fff");
+    text(amount(transaction.deductionTotalMinor), totalX + 6, y + 10, right - totalX - 12,
+      { bold: true, size: 9, align: "right" });
+    text("All amounts in KES. Purchase total: " + amount(transaction.purchaseTotalMinor) + ".",
+      left, y + 38, width, { size: 8, color: green });
+    text("Customer balance payable separately: KES " + amount(transaction.customerDueMinor) + ".",
+      left, y + 52, width, { size: 8, color: green });
+
+    const pages = doc.bufferedPageRange();
+    for (let page = 0; page < pages.count; page++) {
+      doc.switchToPage(page);
+      text("PAGE " + (page + 1) + " OF " + pages.count, right - 90, 110, 90,
+        { size: 6, color: "#777", align: "right" });
+      text("Thank you for banking with us.", left, 711, width,
+        { size: 8, bold: true, color: green, align: "center" });
+      const footerTop = 738;
+      doc.rect(0, footerTop, doc.page.width, doc.page.height - footerTop).fill("#f5f5f5");
+      doc.moveTo(0, footerTop);
+      for (let x = 0; x < doc.page.width; x += 23) doc.lineTo(x + 11.5, footerTop - 12).lineTo(x + 23, footerTop);
+      doc.lineTo(0, footerTop).fill("#f5f5f5");
+      doc.rect(0, 779, 23, 43).fill(green);
+      doc.rect(23, 779, 2, 43).fill(gold);
+      text("Note:", 34, 784, 250, { size: 8, bold: true, color: green });
+      text("This document is computer generated and therefore\nnot signed.", 34, 798, 270, { size: 8, color: green });
     }
-    doc.lineTo(doc.page.width, footerTop).lineTo(0, footerTop).fill();
-    doc
-      .fillColor(green)
-      .rect(0, doc.page.height - 60, 20, 38)
-      .fill();
-    doc
-      .fillColor(green)
-      .font("Helvetica-Bold")
-      .fontSize(8)
-      .text("Note:", left, doc.page.height - 53);
-    doc
-      .font("Helvetica")
-      .fontSize(7)
-      .text(
-        "This document is computer generated and therefore not signed.",
-        left,
-        doc.page.height - 41,
-      );
     doc.end();
   });
 }

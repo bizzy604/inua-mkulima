@@ -108,6 +108,8 @@ docker compose -f infra/compose.yaml --profile app logs -f backend
 
 The container automatically creates its disposable demo configuration, applies migrations, seeds missing fictional data, and starts the API on http://localhost:3000. The SQLite business database, session database, and logs persist in the `backend-data` Docker volume. Start the frontend separately with the Vite command above; it continues to proxy `/api` to port 3000.
 
+The backend container runs a copy of the source from its last build. After editing backend code or receipt assets, run `docker compose -f infra/compose.yaml --profile app up -d --build --no-deps backend`, then download the receipt again. A container restart alone does not load source edits. The rebuild preserves the existing database volume. Receipts use the current template with the original saved purchase details.
+
 Useful Docker commands:
 
 ```powershell
